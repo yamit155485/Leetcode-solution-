@@ -1,0 +1,52 @@
+#include <vector>
+#include <algorithm>
+
+class Solution {
+public:
+    int maximumPopulation(std::vector<std::vector<int>>& logs) {
+        // Constraints specify the year range: 1950 to 2050 (inclusive).
+        // The array size will be 101 for indices 0 to 100, representing
+        // years 1950 + 0 to 1950 + 100 (2050).
+        const int MIN_YEAR = 1950;
+        const int MAX_YEAR_INDEX = 100;
+        
+        // population_changes[i] stores the net change in population at year MIN_YEAR + i.
+        std::vector<int> population_changes(MAX_YEAR_INDEX + 1, 0);
+        
+        // 1. Mark the changes (Difference Array)
+        // A person is alive from birth_i to death_i - 1.
+        for (const auto& log : logs) {
+            int birth_year = log[0];
+            int death_year = log[1];
+            
+            // Person is born: population increases at birth_year
+            population_changes[birth_year - MIN_YEAR] += 1;
+            
+            // Person dies: population decreases at death_year (i.e., NOT alive in death_year)
+            // We only need to check the index if death_year is within our tracked range (up to 2050).
+            if (death_year - MIN_YEAR <= MAX_YEAR_INDEX) {
+                population_changes[death_year - MIN_YEAR] -= 1;
+            }
+        }
+        
+        int max_population = 0;
+        int current_population = 0;
+        int max_population_year = 0;
+        
+        // 2. Calculate the Running Population (Prefix Sum) and find the maximum
+        for (int i = 0; i <= MAX_YEAR_INDEX; ++i) {
+            current_population += population_changes[i];
+            
+            // If the current population is greater than the maximum found so far,
+            // update the maximum and record the current year.
+            // We use '>' instead of '>=' to ensure we return the *earliest* year
+            // in case of a tie in population.
+            if (current_population > max_population) {
+                max_population = current_population;
+                max_population_year = MIN_YEAR + i;
+            }
+        }
+        
+        return max_population_year;
+    }
+};
